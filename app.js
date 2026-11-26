@@ -1750,7 +1750,15 @@
   }
 
   function shake(el) { el.classList.remove('shake'); void el.offsetWidth; el.classList.add('shake'); }
-  function setStatus(msg, bad) { $('status').textContent = plain(msg); if (bad) { shake($('status')); sfx('wrong'); } }
+  function setStatus(msg, bad) { $('status').textContent = plain(msg); if (msg) announce(msg); if (bad) { shake($('status')); sfx('wrong'); } }
+  // screen readers: a hidden polite live region for placements, feedback and the win
+  function announce(msg) {
+    let el = $('sr-live');
+    if (!el) { el = document.createElement('div'); el.id = 'sr-live'; el.className = 'sr-only'; el.setAttribute('aria-live', 'polite'); el.setAttribute('role', 'status'); document.body.appendChild(el); }
+    el.textContent = '';
+    const txt = plain(String(msg).replace(/<[^>]*>/g, ''));
+    setTimeout(() => { el.textContent = txt; }, 30);
+  }
 
   function setMode(m) {
     S.mode = m;
@@ -1855,8 +1863,10 @@
       if (occ >= 0) S.place[occ] = -1;
       S.place[S.sel] = i; S.xs.delete(i); sfx('place');
       clearDrafts(S.sel);
+      const placed = S.sel;
       S.sel = -1;
       setStatus(tr('Pick a suspect below, then tap a square.'));
+      announce(tr('{0} placed: row {1}, column {2}', P.people[placed].name, Math.floor(i / P.N) + 1, i % P.N + 1));
       render(); persist(); checkDone(false);
       return;
     }
@@ -1949,6 +1959,56 @@
     return out;
   }
 
+  /* ---------- keyboard and screen reader access to the board ---------- */
+  let kbCell = 0; // the square that holds the roving tabindex
+  const EDGE_LBL = { window: 'by a window', porthole: 'by a porthole', viewport: 'by a viewport', trail: 'by a trail', entrance: 'by an entrance' };
+  function cellLabel(i, who, crossed, drafts, edges) {
+    const P = S.P, N = P.N, o = P.obj[i];
+    const parts = [tr('Row {0}, column {1}', Math.floor(i / N) + 1, i % N + 1), I.zone(P.zones[P.zoneOf[i]].name).n];
+    if (o) parts.push(I.objName(o));
+    if (['n', 's', 'e', 'w'].some((s) => edges.has(i + s)) && EDGE_LBL[P.theme.edge]) parts.push(tr(EDGE_LBL[P.theme.edge]));
+    if (who >= 0) parts.push(tr('{0} placed', P.people[who].name));
+    else if (crossed) parts.push(tr('crossed out'));
+    else if (drafts.length) parts.push(tr('draft: {0}', drafts.map((q) => P.people[q].name).join(', ')));
+    return parts.join(', ');
+  }
+  $('board').addEventListener('keydown', (e) => {
+    if (!S || e.ctrlKey || e.metaKey || e.altKey) return;
+    const N = S.P.N, r = Math.floor(kbCell / N), c = kbCell % N;
+    const flip = getComputedStyle($('board')).direction === 'rtl' ? -1 : 1;
+    let next = -1;
+    switch (e.key) {
+      case 'ArrowUp': next = r > 0 ? kbCell - N : kbCell; break;
+      case 'ArrowDown': next = r < N - 1 ? kbCell + N : kbCell; break;
+      case 'ArrowLeft': next = r * N + Math.min(N - 1, Math.max(0, c - flip)); break;
+      case 'ArrowRight': next = r * N + Math.min(N - 1, Math.max(0, c + flip)); break;
+      case 'Home': next = r * N; break;
+      case 'End': next = r * N + N - 1; break;
+      case 'Enter': case ' ':
+        e.preventDefault();
+        if (S.mode === 'x' && S.tut >= 0) return;
+        onCell(kbCell);
+        return;
+      case 'Escape': if (S.sel >= 0) { e.preventDefault(); onSuspect(S.sel); } return;
+      default: {
+        // 1-9 or a suspect's letter picks that suspect
+        const k = e.key.length === 1 ? e.key.toUpperCase() : '';
+        let p = /^[1-9]$/.test(k) ? +k - 1 : S.P.people.findIndex((q) => String(q.letter).toUpperCase() === k);
+        if (!k || p < 0 || p >= S.P.people.length) return;
+        e.preventDefault();
+        onSuspect(p);
+        return;
+      }
+    }
+    e.preventDefault();
+    kbCell = next;
+    const cells = $('board').querySelectorAll('.cell');
+    cells.forEach((el) => { el.tabIndex = +el.dataset.i === next ? 0 : -1; });
+    const f = $('board').querySelector(`.cell[data-i="${next}"]`);
+    if (f) f.focus();
+  });
+  $('board').addEventListener('focusin', (e) => { const c = e.target.closest && e.target.closest('.cell'); if (c) kbCell = +c.dataset.i; });
+
   const isOuter = (N, i, s) => {
     const r = Math.floor(i / N), c = i % N;
     return (s === 'n' && r === 0) || (s === 's' && r === N - 1) || (s === 'w' && c === 0) || (s === 'e' && c === N - 1);
@@ -1962,15 +2022,23 @@
     board.style.setProperty('--bs', boardPx(N) + 'px');
     board.style.gridTemplateColumns = `repeat(${N}, 1fr)`;
     board.style.gridTemplateRows = `repeat(${N}, 1fr)`;
+    const hadFocus = board.contains(document.activeElement);
+    if (kbCell >= N * N) kbCell = 0;
+    board.setAttribute('role', 'grid');
+    board.setAttribute('aria-label', tr('Crime scene board, {0} by {0} squares. Use the arrow keys to move, Enter to act, number keys to pick a suspect.', N));
     board.innerHTML = '';
+    let rowEl = null;
     const labels = zoneLabelCells(P, new Set(S.place)), bad = conflicts();
     const usedR = new Set(), usedC = new Set();
     if (S.sel >= 0) S.place.forEach((x, p) => { if (x >= 0 && p !== S.sel) { usedR.add(Math.floor(x / N)); usedC.add(x % N); } });
     const edges = new Set(P.edges);
 
     for (let i = 0; i < N * N; i++) {
+      if (i % N === 0) { rowEl = document.createElement('div'); rowEl.className = 'brow'; rowEl.setAttribute('role', 'row'); board.appendChild(rowEl); }
       const cell = document.createElement('div');
       cell.className = 'cell';
+      cell.setAttribute('role', 'gridcell');
+      cell.tabIndex = i === kbCell ? 0 : -1;
       cell.style.backgroundColor = P.zones[P.zoneOf[i]].color;
       if (ART) cell.classList.add('fl-' + ART.floor(P.theme.id, P.zoneOf[i]));
       const step = S.tut >= 0 ? TUTORIAL[S.tut] : null;
@@ -2024,9 +2092,11 @@
         }
       }
       cell.dataset.i = i;
-      cell.addEventListener('click', () => { if (S.mode !== 'x') onCell(i); });
-      board.appendChild(cell);
+      cell.setAttribute('aria-label', cellLabel(i, who, crossed, drafts, edges));
+      cell.addEventListener('click', () => { kbCell = i; if (S.mode !== 'x') onCell(i); });
+      rowEl.appendChild(cell);
     }
+    if (hadFocus) { const f = board.querySelector(`.cell[data-i="${kbCell}"]`); if (f) f.focus({ preventScroll: true }); }
 
     const notes = $('extra');
     notes.hidden = !S.extra.length;
@@ -2297,6 +2367,7 @@
         if (!S.wrongAccuse.includes(p)) S.wrongAccuse.push(p);
         persist(); renderAccuse();
         $('acc-msg').textContent = tr("{0} wasn't alone with {1} {2}! Look again.", P.people[p].name, P.people[P.victim].name, zone.in);
+        announce($('acc-msg').textContent);
         if (ART && S.tut >= 0) tutMsg(tr('Not them. Who else was in the same room? Try the glowing one 🙂'), true);
         shake(el); sfx('wrong');
       });
@@ -2329,6 +2400,7 @@
     const zone = I.zone(P.zones[P.zoneOf[P.solution[P.victim]]].name);
     stopTimer();
     S.won = true; renderAccuse();
+    announce(tr('Case closed: <b>{0}</b> did it.', m.name));
     if (S.slot === 'tutorial') {
       store.tutorialDone = true; store.seenHowto = true; save();
       S.tut = -1; renderCoach();

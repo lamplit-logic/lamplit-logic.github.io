@@ -69,6 +69,17 @@
   I.packs.es = {
     name: "Español",
     ui: {
+ "Crime scene board, {0} by {0} squares. Use the arrow keys to move, Enter to act, number keys to pick a suspect.": "Tablero de la escena del crimen, {0} por {0} casillas. Las flechas te mueven, Enter actúa y los números eligen a un sospechoso.",
+ "Row {0}, column {1}": "Fila {0}, columna {1}",
+ "{0} placed": "{0} en el tablero",
+ "crossed out": "tachada",
+ "draft: {0}": "borrador: {0}",
+ "{0} placed: row {1}, column {2}": "{0} en el tablero: fila {1}, columna {2}",
+ "by a window": "junto a una ventana",
+ "by a porthole": "junto a un ojo de buey",
+ "by a viewport": "junto a un ventanal",
+ "by a trail": "junto a un sendero",
+ "by an entrance": "junto a una entrada",
  "Rule 1: every suspect has a row and a column all to themselves.": "Regla 1: cada sospechoso tiene su propia fila y su propia columna.",
  "Rule 2: you can stand on chairs, beds and rugs, but not on tables, plants or TVs.": "Regla 2: se puede estar sobre sillas, camas y alfombras, pero no sobre mesas, plantas ni televisores.",
  "Rule 3: the victim is in the last free square, and whoever is alone with them in that room did it.": "Regla 3: la víctima está en la última casilla libre, y quien esté a solas con ella en esa habitación es el culpable.",

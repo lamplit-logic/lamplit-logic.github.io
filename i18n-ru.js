@@ -64,6 +64,17 @@
   I.packs.ru = {
     name: "Русский",
     ui: {
+ "Crime scene board, {0} by {0} squares. Use the arrow keys to move, Enter to act, number keys to pick a suspect.": "Поле места преступления, {0} на {0} клеток. Стрелки перемещают, Enter выполняет действие, цифры выбирают подозреваемого.",
+ "Row {0}, column {1}": "Строка {0}, столбец {1}",
+ "{0} placed": "{0} на поле",
+ "crossed out": "зачёркнуто",
+ "draft: {0}": "черновик: {0}",
+ "{0} placed: row {1}, column {2}": "{0} на поле: строка {1}, столбец {2}",
+ "by a window": "у окна",
+ "by a porthole": "у иллюминатора",
+ "by a viewport": "у смотрового окна",
+ "by a trail": "у тропы",
+ "by an entrance": "у входа",
  "Rule 1: every suspect has a row and a column all to themselves.": "Правило 1: у каждого подозреваемого своя строка и свой столбец.",
  "Rule 2: you can stand on chairs, beds and rugs, but not on tables, plants or TVs.": "Правило 2: можно стоять на стульях, кроватях и коврах, но не на столах, растениях и телевизорах.",
  "Rule 3: the victim is in the last free square, and whoever is alone with them in that room did it.": "Правило 3: жертва в последней свободной клетке, а убийца тот, кто остался с ней наедине в комнате.",

@@ -2,7 +2,7 @@
 <html lang="en" dir="ltr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#0c0a11">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
@@ -521,7 +521,7 @@
   body.art .cell.wall-s { border-bottom: 3px solid #4a3b63; }
   body.art .cell.wall-e { border-right: 3px solid #4a3b63; }
   body.art .cell.wall-w { border-left: 3px solid #4a3b63; }
-  body.art .board > .cell:first-child { border-top-left-radius: 8px; }
+  body.art .board > .brow:first-child > .cell:first-child { border-top-left-radius: 8px; }
   body.art .edge { border: 2px solid #4a3b63; border-radius: 3px; box-shadow: inset 0 0 0 1.5px rgba(255,255,255,.75); }
   body.art .edge.n, body.art .edge.s { height: 9px; } body.art .edge.n { top: -8px; } body.art .edge.s { bottom: -8px; }
   body.art .edge.w, body.art .edge.e { width: 9px; } body.art .edge.w { left: -8px; } body.art .edge.e { right: -8px; }
@@ -1097,6 +1097,13 @@ body.noir .cell.coach-hl { box-shadow: inset 0 0 0 4px #ffb300, inset 0 0 14px r
 .ill-room .kn svg { width: 22px; height: 22px; display: block; }
 @keyframes killer { 50% { box-shadow: 0 0 0 5px rgba(216,40,61,.45); } }
 @media (max-height: 700px) { .ill-rows { grid-template-columns: repeat(4, 22px); grid-template-rows: repeat(4, 22px); } .ill-rows i s { font-size: 14px; } .ill-rows i.me svg { width: 20px; height: 20px; } .ill-objs .ob { width: 40px; height: 40px; } .ill-room .f svg { width: 32px; height: 32px; } .ill-room .wl { height: 38px; } }
+  /* accessibility: pinch-zoom stays allowed, but double-tap on controls does not zoom; keyboard focus ring; hidden live region */
+  button, .board, .cell, .suspect, summary, a { touch-action: manipulation; }
+  .brow { display: contents; }
+  .cell:focus { outline: none; }
+  .cell:focus-visible { outline: 3px solid #ff9f1c; outline-offset: -3px; box-shadow: inset 0 0 0 5px rgba(43,35,64,.75); z-index: 9; }
+  .sr-only { position: absolute !important; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+  body.noir .cell:focus-visible { outline-color: var(--gold); box-shadow: inset 0 0 0 5px rgba(20,16,27,.8), 0 0 12px rgba(217,164,65,.7); }
 </style>
 </head>
 <body class="art noir">

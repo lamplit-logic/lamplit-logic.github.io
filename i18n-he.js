@@ -65,6 +65,17 @@
   I.packs.he = {
     name: "עברית",
     ui: {
+ "Crime scene board, {0} by {0} squares. Use the arrow keys to move, Enter to act, number keys to pick a suspect.": "לוח זירת הפשע, {0} על {0} משבצות. החצים מזיזים, Enter מבצע פעולה, מקשי המספרים בוחרים חשוד.",
+ "Row {0}, column {1}": "שורה {0}, עמודה {1}",
+ "{0} placed": "{0} על הלוח",
+ "crossed out": "מסומן ב-✕",
+ "draft: {0}": "טיוטה: {0}",
+ "{0} placed: row {1}, column {2}": "{0} על הלוח: שורה {1}, עמודה {2}",
+ "by a window": "ליד חלון",
+ "by a porthole": "ליד אשנב",
+ "by a viewport": "ליד חלון תצפית",
+ "by a trail": "ליד שביל",
+ "by an entrance": "ליד כניסה",
  "Rule 1: every suspect has a row and a column all to themselves.": "כלל 1: לכל חשוד יש שורה אחת ועמודה אחת רק לו.",
  "Rule 2: you can stand on chairs, beds and rugs, but not on tables, plants or TVs.": "כלל 2: אפשר לעמוד על כיסאות, מיטות ושטיחים, אבל לא על שולחנות, עציצים וטלוויזיות.",
  "Rule 3: the victim is in the last free square, and whoever is alone with them in that room did it.": "כלל 3: הקורבן במשבצת האחרונה הפנויה, ומי שנשאר לבד איתו באותו חדר הוא הרוצח.",

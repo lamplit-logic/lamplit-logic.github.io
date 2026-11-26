@@ -40,7 +40,6 @@ The owner wants proactive upgrades: keep looking for what can be improved withou
 
 ## Known gaps
 - Not tested on a real device or in an installed app.
-- Zone labels can cover tokens on 8x8 and 10x10 boards; very small text (7px) there.
 - The viewport blocks zoom; the board cannot be played by keyboard or screen reader.
 - The restore-backup dialog is a native `confirm()`.
 - `promo/crime-grid-playable.html` still contains the old story titles (rebuild with `tools/promo/make-playable.js`).

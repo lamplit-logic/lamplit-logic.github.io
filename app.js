@@ -1917,35 +1917,39 @@
     if (h <= 760 && w <= 480 && N <= 6) px = Math.min(px, h * 0.35);
     return Math.floor(px);
   }
-  function zoneLabelCells(P, occupied) {
-    // one label per area, on a square near its bottom, without two labels overlapping
-    const N = P.N, cellPx = boardPx(N) / N;
-    const fontPx = Math.max(8, cellPx * 0.19);
-    const span = (z) => (I.zone(P.zones[z].name).n.length * fontPx * 0.58 + 10) / cellPx; // label width in squares
-    const taken = []; // [row, from, to]
+  function zoneLabelCells(P, occupied, board) {
+    // one label per area, along the bottom of a horizontal run of that area's own squares.
+    // The run never holds a placed suspect, so a label can never cover a token (labels move when tokens move),
+    // and it never leaves its area, so two labels can't overlap. Squares without objects or pencil marks are preferred.
+    // If no free run is long enough for the whole name, render() cuts it with "…" (the full name goes in its title).
+    const N = P.N, cellPx = (board.clientWidth || boardPx(N)) / N; // real square size (the board border is not part of it)
+    const probe = document.createElement('div');
+    probe.className = 'zone-label'; probe.style.visibility = 'hidden';
+    board.appendChild(probe);
+    const width = (name) => { probe.textContent = name; return probe.offsetWidth || name.length * Math.max(9, cellPx * 0.19) * 0.62 + 10; };
     const out = {};
-    const zonesBySize = [...P.zones.keys()].sort((a, b) => P.zoneOf.filter((x) => x === a).length - P.zoneOf.filter((x) => x === b).length);
-    for (const z of zonesBySize) {
-      const w = span(z);
-      const cells = [];
-      P.zoneOf.forEach((zz, i) => {
-        if (zz !== z) return;
-        const r = Math.floor(i / N), c = i % N;
-        let run = 0; for (let k = 0; k < N; k++) if (P.zoneOf[r * N + k] === z) run++;
-        const score = r * 10 + Math.min(run, w) * 3 + (P.obj[i] ? -2 : 0) - (occupied && occupied.has(i) ? 60 : 0) - Math.abs(c - (N - 1) / 2) * 0.2;
-        cells.push([i, score]);
-      });
-      cells.sort((a, b) => b[1] - a[1]);
-      let chosen = cells[0][0];
-      for (const [i] of cells) {
-        const r = Math.floor(i / N), c = i % N + 0.5;
-        const from = Math.max(0, c - w / 2), to = Math.min(N, c + w / 2);
-        if (!taken.some(([tRow, tf, tt]) => tRow === r && from < tt && to > tf)) { chosen = i; break; }
+    P.zones.forEach((zone, z) => {
+      const name = I.zone(zone.name).n;
+      const need = Math.max(1, Math.ceil((width(name) + 6) / cellPx)); // squares the full name needs
+      let best = null;
+      for (let r = 0; r < N; r++) {
+        for (let c = 0; c < N; c++) {
+          // free squares of this area starting at (r, c), up to what the name needs
+          let len = 0, clutter = 0;
+          while (c + len < N && len < need) {
+            const i = r * N + c + len;
+            if (P.zoneOf[i] !== z || (occupied && occupied.has(i))) break;
+            clutter += (P.obj[i] ? 2 : 0) + (S && S.draft && S.draft[i] && S.draft[i].length ? 3 : 0);
+            len++;
+          }
+          if (!len) continue;
+          const score = len * 40 - clutter * 4 + r * 3 - Math.abs(c + len / 2 - N / 2) * 0.3;
+          if (!best || score > best.score) best = { score, i: r * N + c, len, name };
+        }
       }
-      const r = Math.floor(chosen / N), c = chosen % N + 0.5;
-      taken.push([r, c - w / 2, c + w / 2]);
-      out[chosen] = z;
-    }
+      if (best) out[best.i] = best;
+    });
+    probe.remove();
     return out;
   }
 
@@ -1963,7 +1967,7 @@
     board.style.gridTemplateColumns = `repeat(${N}, 1fr)`;
     board.style.gridTemplateRows = `repeat(${N}, 1fr)`;
     board.innerHTML = '';
-    const labels = zoneLabelCells(P, new Set(S.place)), bad = conflicts();
+    const labels = zoneLabelCells(P, new Set(S.place), board), bad = conflicts();
     const usedR = new Set(), usedC = new Set();
     if (S.sel >= 0) S.place.forEach((x, p) => { if (x >= 0 && p !== S.sel) { usedR.add(Math.floor(x / N)); usedC.add(x % N); } });
     const edges = new Set(P.edges);
@@ -1996,7 +2000,12 @@
       });
       if (i in labels) {
         const lb = document.createElement('div');
-        lb.className = 'zone-label' + (i % N === 0 ? ' zl-l' : i % N === N - 1 ? ' zl-r' : ''); lb.textContent = I.zone(P.zones[labels[i]].name).n;
+        const L = labels[i];
+        lb.className = 'zone-label';
+        lb.textContent = L.name;
+        lb.dataset.len = L.len;
+        lb.style.left = (L.len * 50) + '%';   // centred on its run of free squares (made exact in pixels below)
+        lb.style.maxWidth = `calc(${L.len * 100}% - 4px)`;
         cell.appendChild(lb); cell.classList.add('has-zl');
       }
       if (who >= 0) {
@@ -2027,6 +2036,14 @@
       cell.addEventListener('click', () => { if (S.mode !== 'x') onCell(i); });
       board.appendChild(cell);
     }
+    // a label is positioned inside its square's border (walls are thick), so place it in pixels from the square's outer edge
+    board.querySelectorAll('.zone-label').forEach((lb) => {
+      const cell = lb.parentNode, w = cell.offsetWidth, len = +lb.dataset.len;
+      if (!w) return;
+      lb.style.left = (len * w / 2 - cell.clientLeft) + 'px';
+      lb.style.maxWidth = (len * w - 4) + 'px';
+      if (lb.scrollWidth > lb.clientWidth + 1) { lb.classList.add('zl-cut'); lb.title = lb.textContent; } // no free run was long enough: cut with "…"
+    });
 
     const notes = $('extra');
     notes.hidden = !S.extra.length;
@@ -2532,6 +2549,8 @@
 
   document.addEventListener('visibilitychange', () => { if (document.hidden) persist(); });
   window.addEventListener('resize', () => { if (S) $('play-area').style.top = $('topbar').offsetHeight + 'px'; });
+  // zone labels are fitted to the measured text width: measure again once the web fonts have arrived
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { if (S && $('game').classList.contains('active')) render(); });
   I.setLang(store.lang || I.detect());
   applySkin();
   IAP.init().then(() => { if ($('home').classList.contains('active')) renderShopCard(); });

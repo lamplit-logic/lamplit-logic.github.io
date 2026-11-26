@@ -368,7 +368,7 @@
  "Popular": "Популярное",
  "Best value": "Выгодно",
  "👋 Welcome, detective! I'll walk you through your very first case. Tap <b>Next</b>.": "👋 Добро пожаловать, детектив! Я проведу вас через ваше первое дело. Нажмите <b>«Далее»</b>.",
- "This is the <b>crime scene</b>. Thick lines are walls: they split the house into rooms. You <b>can</b> stand on chairs, beds and rugs, but <b>not</b> on tables, plants or TVs.": "Это <b>место преступления</b>. Толстые линии это стены: они делят дом на комнаты. Можно находиться на стульях, кроватях и коврах, но <b>нельзя</b> на столах, растениях и телевизорах.",
+ "This is the <b>crime scene</b>. Thick lines are walls: they split the house into rooms. You <b>can</b> stand on chairs, beds and rugs, but <b>not</b> on tables, plants or TVs.": "Это <b>место преступления</b>. Толстые линии это стены: они делят дом на комнаты. <b>Можно</b> находиться на стульях, кроватях и коврах, но <b>нельзя</b> на столах, растениях и телевизорах.",
  "The golden rule: every person was in a <b>different row</b> and a <b>different column</b>, just like sudoku.": "Золотое правило: каждый человек был в <b>своей строке</b> и в <b>своём столбце</b>, как в судоку.",
  "<b>Ava</b> was sitting on a chair. There is only <b>one chair</b> in the house! Tap Ava's card below, then tap the chair.": "<b>Ava</b> сидела на стуле. Во всём доме только <b>один стул</b>! Нажмите на карточку Ava внизу, затем на стул.",
  "Nice! Ava now owns her row and her column, so nobody else can use them. When you pick another suspect, those squares turn gray.": "Отлично! Теперь строка и столбец Ava заняты, и никто другой не может их использовать. Когда вы выбираете другого подозреваемого, эти клетки становятся серыми.",

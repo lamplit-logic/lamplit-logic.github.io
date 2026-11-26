@@ -448,7 +448,7 @@
     try { s = JSON.parse(localStorage.getItem(STORE_KEY)) || {}; } catch (e) { s = {}; }
     if (s.engine !== E.VERSION) {
       // cases from the old version can't be resumed, but progress and profile are kept
-      for (const d of DIFFS) if (s[d.key]) { s[d.key].cur = null; s[d.key].next = null; }
+      for (const k of [...DIFFS.map((d) => d.key), 'journey', 'daily', 'challenge', 'race']) if (s[k]) { s[k].cur = null; s[k].next = null; }
       s.engine = E.VERSION;
     }
     return s;
@@ -685,7 +685,11 @@
 
   /* ---------- language & settings ---------- */
   const langButtons = () => I.langs.map((l) => `<button class="lang-btn${I.lang === l.code ? ' on' : ''}" data-act="lang" data-lang="${l.code}" lang="${l.code}">${l.label}</button>`).join('');
-  function chooseLang(code) { store.lang = code; save(); I.setLang(code); }
+  function chooseLang(code) {
+    store.lang = code; I.setLang(code);
+    if (store.profile && store.profile.auto) store.profile.name = tr('Detective');   // the default name follows the language
+    save();
+  }
   // repaint whatever is on screen in the new language
   function relocalize() {
     renderCoins();

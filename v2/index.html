@@ -840,7 +840,7 @@ body.noir::before { content: ""; position: fixed; inset: 0; z-index: -1; pointer
     radial-gradient(circle at 50% 22%, rgba(184,40,47,.10), transparent 60%),
     linear-gradient(180deg, #0d1020 0%, #110e1b 45%, #09080e 100%); }
 body.noir #game { background: transparent; }
-body.noir #home { background: transparent; overflow-x: hidden; min-height: 100vh; min-height: 100dvh;
+body.noir #home { background: transparent; overflow-x: hidden; overflow-x: clip; min-height: 100vh; min-height: 100dvh;
   padding: calc(14px + env(safe-area-inset-top)) 16px calc(var(--nav-h) + 28px + env(safe-area-inset-bottom)); }
 body.noir #home::after { content: none; }
 body.noir #home > .home-bg { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }

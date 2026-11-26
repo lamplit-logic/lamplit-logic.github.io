@@ -717,7 +717,7 @@
 
   /* ---------- backup code: move progress to another phone or browser ---------- */
   const BACKUP_KEYS = ['noAds', 'lang', 'profile', 'coins', 'missions', 'freezes', 'frozen', 'seenWhatIf', 'owned', 'skin', 'journey', 'jStars', 'easy', 'medium', 'hard', 'expert', 'extreme', 'daily', 'dailyLog', 'ach', 'trophies',
-    'themesSolved', 'friends', 'bonusDay', 'bonusStreak', 'pid', 'sound', 'seenHowto', 'tutorialDone', 'paid', 'engine'];
+    'themesSolved', 'friends', 'bonusDay', 'bonusStreak', 'pid', 'sound', 'seenHowto', 'tutorialDone', 'paid', 'engine', 'refs', 'paidTokens', 'blocked', 'jBest'];
   function backupCode() {
     const o = {};
     BACKUP_KEYS.forEach((k) => { if (store[k] !== undefined) o[k] = store[k]; });
@@ -2467,8 +2467,10 @@
     } else {
       if (S.slot === 'journey') { store.jStars = store.jStars || {}; store.jStars[S.caseNum] = Math.max(store.jStars[S.caseNum] || 0, nStars); }
       pg.solved++; pg.caseNum++; pg.cur = null;
-      isBest = !S.hints && !S.helps && (pg.best == null || S.elapsed < pg.best);
-      if (isBest) pg.best = S.elapsed;
+      // journey levels keep one best time per difficulty (a 4x4 time must not be compared with a 10x10)
+      const bests = S.slot === 'journey' ? (store.jBest = store.jBest || {}) : pg, bk = S.slot === 'journey' ? S.diff : 'best';
+      isBest = !S.hints && !S.helps && (bests[bk] == null || S.elapsed < bests[bk]);
+      if (isBest) bests[bk] = S.elapsed;
     }
     save();
     const showResult = () => {
@@ -2478,7 +2480,7 @@
     const lockLine = m.g === 'm' ? tr("He's on the way to jail.") : tr("She's on the way to jail.");
     const hasNext = S.slot !== 'daily' && S.slot !== 'challenge' && S.slot !== 'race';
     if (ART) {
-      const bestSec = isBest ? S.elapsed : (store[S.diff] && store[S.diff].best);
+      const bestSec = isBest ? S.elapsed : (S.slot === 'journey' ? (store.jBest || {})[S.diff] : store[S.diff] && store[S.diff].best);
       const stat = (cls, html) => `<span class="w-stat ${cls}">${html}</span>`;
       const stats = [stat('', `⏱ ${fmtTime(S.elapsed)}`),
         bestSec != null ? stat(isBest ? 'hot' : '', `${ic('trophy', '🏆')} ${isBest ? tr('New personal best!') : tr('Best {0}', fmtTime(bestSec))}`) : '',
